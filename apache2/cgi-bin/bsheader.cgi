@@ -37,6 +37,9 @@ print "Content-type: text/html\n\n";
 print qq|
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+<meta http-equiv='cache-control' content='no-cache'>
+<meta http-equiv='expires' content='0'>
+<meta http-equiv='pragma' content='no-cache'>
 <head>
   <meta http-equiv="Content-type" content="text/html;charset=utf-8" />
   <link rel="stylesheet" type="text/css" href="/css/global.css" media="all" />
