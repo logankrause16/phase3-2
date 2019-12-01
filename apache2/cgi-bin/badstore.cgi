@@ -34,7 +34,7 @@ use CGI::Carp qw(fatalsToBrowser);
 use DBI;
 use CGI qw(:standard :html4);
 use Digest::MD5 qw(md5_hex);
-use MIME::Base64; #docker  #invalid reference format ubuntu
+use MIME::Base64;
 ### Setup Global Variables ###
 $time = time;
 $ipaddr = $ENV{'REMOTE_ADDR'};
@@ -672,20 +672,11 @@ sub order
 
 		### Add ordered items to Order Database ###
 		my $q = $dbh->prepare("INSERT INTO orderdb (sessid, orderdate, ordertime, ordercost, orderitems, itemlist, accountid, ipaddr, cartpaid, ccard, expdate) VALUES (?, CURDATE(), CURTIME(), ?, ?, ?, ?, ?, 'Y', ?, ?)");
-		$q->bind_param(1, $id);
-		$q->bind_param(2, $price);
-		$q->bind_param(3, $items);
-		$q->bind_param(4, $cartitems);
-		$q->bind_param(5, $email);
-		$q->bind_param(6, $ipaddr);
-		$q->bind_param(7, $ccard);
-		$q->bind_param(8, $expdate);
-		$q->execute();
 
 		### Prepare and Execute SQL Query ###
 		my $sth = $dbh->prepare( "SELECT itemnum, sdesc, ldesc, price FROM itemdb WHERE itemnum IN ($cartitems)")
            		or die "Couldn't prepare statement"; ### removed verbose error message
-     		$sth->execute() or die "Couldn't execute SQL statement"; ### removed verbose error message
+     		$sth->execute($id, $price, $items, $cartitems, $email, $ipaddr, $ccard, $expdate) or die "Couldn't execute SQL statement"; ### removed verbose error message
      		if ($sth->rows == 0) {
            		die "Item number not found"; ### removed verbose error message
      		} else {
@@ -1180,12 +1171,8 @@ sub moduser
 	### Reset User Password ###
 	if ($aquery eq 'Reset User Password') {
 		print start_page('BadStore.net - Reset Password for User');
-		### Prepare and Execute SQL Query ###
-		my $sth=$dbh->prepare("UPDATE userdb SET passwd = '$encpasswd' WHERE email='$email' AND pwdhint='$pwdhint'")
-			or die "Could not update password"; ### removed verbose error message
-		$sth->execute() or die "Couldn't execute SQL statement: ".$sth->errstr;
-	
-		print h2('The password for user:  ', $email,p, ' ...has been reset to: ',$newpasswd),
+		### Print a fake password reset statement ###
+		print h2('A password reset link has been sent to:  ', $email),
 
 	}elsif ($aquery eq 'Add User'){
 		print start_page('BadStore.net - Add User');
