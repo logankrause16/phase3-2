@@ -882,9 +882,9 @@ sub supplierportal
 		or die "Cannot connect"; ### removed verbose error message
 
 	### Prepare, Evaluate and Execute SQL Query ###
-	my $sth = $dbh->prepare("SELECT * FROM userdb WHERE email='$email' AND passwd='$passwd' ");
+	my $sth = $dbh->prepare("SELECT * FROM userdb WHERE email=? AND passwd=? ");
 	eval {
-	     	$sth->execute();
+	     	$sth->execute($email, $passwd);
 		1;
 	} or do {
 		print "Location: /cgi-bin/badstore.cgi?action=supplierlogin\n\n";
