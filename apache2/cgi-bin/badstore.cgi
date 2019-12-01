@@ -1054,15 +1054,15 @@ sub loginregister
      <table cellspacing="0" cellpadding="0">
        <tr>
          <td width="100">Full Name:</td>
-         <td><input type="text" name="fullname" size="25" maxlength="40" /></td>
+         <td><input type="text" name="fullname" required size="25" maxlength="40" /></td>
        </tr>
        <tr>
          <td>Email Address:</td>
-         <td><input type="text" name="email" size="20" maxlength="40" /></td>
+         <td><input type="text" name="email" required size="20" maxlength="40" /></td>
        </tr>
        <tr>
          <td>Password:</td>
-         <td><input type="password" name="passwd" size="8" maxlength="8" /></td>
+         <td><input type="password" name="passwd" required size="8" maxlength="8" /></td>
        </tr>
        <tr>
          <td></td>
@@ -1158,7 +1158,7 @@ sub moduser
 	chomp($passwd);
 	chomp($fullname);
 	chomp($role);
-	$newpasswd="Welcome";
+	$newpasswd=$query->param('newpasswd');
 	$encpasswd=md5_hex($newpasswd);
 	$vencpasswd=md5_hex($vnewpasswd);
 	&printheaders;
@@ -1175,7 +1175,7 @@ sub moduser
 
 	}elsif ($aquery eq 'Add User'){
 		print start_page('BadStore.net - Add User');
-		$dbh->do("INSERT INTO userdb (email, passwd, pwdhint, fullname, role) VALUES ('$email','$encpasswd','$pwdhint', '$fullname', '$role')")
+		$dbh->do("INSERT INTO userdb (email, passwd, fullname, role) VALUES ('$email','$encpasswd', '$fullname', '$role')")
 			or die "Couldn't prepare SQL statement for Registration"; ### removed verbose error message
 		print h2("User:  ",$fullname," has been added.");
 
@@ -1254,7 +1254,7 @@ sub authuser
 
 		### Register for a new account as a normal user ###
 		### Add ordered items to Order Database ###
-		$dbh->do("INSERT INTO userdb (email, passwd, pwdhint, fullname, role) VALUES ('$email', '$passwd','$pwdhint', '$fullname', '$role')")
+		$dbh->do("INSERT INTO userdb (email, passwd, fullname, role) VALUES ('$email', '$passwd', '$fullname', '$role')")
 			or die "Couldn't prepare SQL statement for Registration"; ### removed verbose error message
 	}
 
