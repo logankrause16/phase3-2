@@ -404,7 +404,6 @@ sub adminportal
 			print start_form(-method=>'POST',-action=>'/cgi-bin/badstore.cgi?action=moduser'),
 			"Email Address:  ",textfield(-name=>'email',-size=>40),p,
 			hidden(-name=>'password',-default=>[md5_hex('Welcome')]),
-			"Password Hint:  ",popup_menu(-name=>'pwdhint',-values=>['green','blue','red','orange','purple','yellow']),p,			
 			"Full Name:  ",textfield(-name=>'fullname',-size=>50),p,
 			"Role:  ",textfield(-name=>'role',-size=>1),p,
 			submit(-name=>'DoMods',-value=>'Add User'), reset(), end_form,hr;
@@ -1065,22 +1064,6 @@ sub loginregister
          <td><input type="password" name="passwd" size="8" maxlength="8" /></td>
        </tr>
        <tr>
-         <td>Password Hint:</td>
-         <td>
-           What's Your Favorite Color?:
-           <select name="pwdhint">
-             <option value="green">Green</option>
-             <option value="blue">Blue</option>
-             <option value="red">Red</option>
-             <option value="orange">Orange</option>
-             <option value="purple">Purple</option>
-             <option value="yellow">Yellow</option>
-           </select>
-           <br />
-           <em>(The Password Hint is used as a security measure to help recover a forgotten password.  You will need both your email address and this hint to access your account if you forget your current password.)</em>
-         </td>
-       </tr>
-       <tr>
          <td></td>
          <td>
             <input type="hidden" name="role" value="U" />
@@ -1105,8 +1088,6 @@ sub loginregister
    #p,"Full Name:  ", textfield(-name=>'fullname', -size=>25, -maxlength=>40), p,
    #p,"Email Address:  ", textfield(-name=>'email', -size=>20, -maxlength=>40), p,
    #p,"Password:  ", password_field(-name=>'passwd', -size=>8 -maxlength=>8),p,
-   #"Password Hint - What's Your Favorite Color?:  ",popup_menu(-name=>'pwdhint',-values=>['green','blue','red','orange','purple','yellow']),p,
-   #"<font face=Arial size=2><i>(The Password Hint is used as a security measure to help recover a forgotten password.  You will need both your email address and this hint to access your account if you forget your current password.)</i></font>",p,
    #hidden(-name=>'role', -default=>['U']),
    #submit("Register"), end_form, p,
    #end_page();
@@ -1118,7 +1099,7 @@ sub loginregister
 
 sub myaccount
 {
-	local($aquery, $email, $passwd, $pwdhint, $fullname, $role, $newpasswd, $vnewpasswd, $encpasswd);
+	local($aquery, $email, $passwd, $fullname, $role, $newpasswd, $vnewpasswd, $encpasswd);
  
 	### Read SSOid Cookie ###
 	$stemp=cookie('SSOid');
@@ -1140,8 +1121,6 @@ sub myaccount
 		start_form(-method=>'POST', -action=>'/cgi-bin/badstore.cgi?action=moduser'),
 		"<font face=Arial size=2> Please enter the email addess and password hint you chose when the account was created:</font>",p,
 		" Email Address:  ", textfield(-name=>'email', -size=>15),p,
-		" Password Hint - What's Your Favorite Color?:  ",popup_menu(-name=>'pwdhint',-values=>['green','blue','red','orange','purple','yellow']),p,
-		"<font face=Arial size=2><i> (The Password Hint was chosen when you registered for a new account as a security measure to help recover a forgotten password...)</i></font>",p,
 		submit(-name=>'DoMods',-value=>'Reset User Password'), end_form;
 
 	} else {
@@ -1166,18 +1145,16 @@ sub myaccount
 
 sub moduser
 {
-	local($aquery, $email, $passwd, $pwdhint, $fullname, $role, $newpasswd, $encpasswd, $vnewpasswd, $newemail);
+	local($aquery, $email, $passwd, $fullname, $role, $newpasswd, $encpasswd, $vnewpasswd, $newemail);
 	$aquery=$query->param('DoMods');
 	$email=$query->param('email');
 	$passwd=$query->param('passwd');
-	$pwdhint=$query->param('pwdhint');
 	$fullname=$query->param('fullname');
 	$role=$query->param('role');
 	$vnewpasswd=$query->param('vnewpasswd');
 	$newemail=$query->param('newemail');
 	chomp($email);
 	chomp($passwd);
-	chomp($pwdhint);
 	chomp($fullname);
 	chomp($role);
 	$newpasswd="Welcome";
@@ -1193,7 +1170,7 @@ sub moduser
 	if ($aquery eq 'Reset User Password') {
 		print start_page('BadStore.net - Reset Password for User');
 		### Prepare and Execute SQL Query ###
-		my $sth=$dbh->prepare("UPDATE userdb SET passwd = '$encpasswd' WHERE email='$email' AND pwdhint='$pwdhint'")
+		my $sth=$dbh->prepare("UPDATE userdb SET passwd = '$encpasswd' WHERE email='$email'")
 			or die "Could not update password: ".$dbh->errstr;
 		$sth->execute() or die "Couldn't execute SQL statement: ".$sth->errstr;
 	
@@ -1201,7 +1178,7 @@ sub moduser
 
 	}elsif ($aquery eq 'Add User'){
 		print start_page('BadStore.net - Add User');
-		$dbh->do("INSERT INTO userdb (email, passwd, pwdhint, fullname, role) VALUES ('$email','$encpasswd','$pwdhint', '$fullname', '$role')")
+		$dbh->do("INSERT INTO userdb (email, passwd, fullname, role) VALUES ('$email', '$encpasswd', '$fullname', '$role')")
 			or die "Couldn't prepare SQL statement for Registration: " . $dbh->errstr;
 		print h2("User:  ",$fullname," has been added.");
 
@@ -1236,15 +1213,13 @@ sub moduser
 
 sub authuser
 {
-	local(@data, $email, $passwd, $pwdhint,$fullname, $role);
+	local(@data, $email, $passwd,$fullname, $role);
 	$email=$query->param('email');
 	$passwd=$query->param('passwd');
-	$pwdhint=$query->param('pwdhint');
 	$fullname=$query->param('fullname');
 	$role=$query->param('role');
 	chomp($email);
 	chomp($passwd);
-	chomp($pwdhint);
 	chomp($fullname);
 	chomp($role);
 	$passwd=md5_hex($passwd);
@@ -1282,7 +1257,7 @@ sub authuser
 
 		### Register for a new account as a normal user ###
 		### Add ordered items to Order Database ###
-		$dbh->do("INSERT INTO userdb (email, passwd, pwdhint, fullname, role) VALUES ('$email', '$passwd','$pwdhint', '$fullname', '$role')")
+		$dbh->do("INSERT INTO userdb (email, passwd, fullname, role) VALUES ('$email', '$passwd', '$fullname', '$role')")
 			or die "Couldn't prepare SQL statement for Registration: " . $dbh->errstr;
 	}
 
