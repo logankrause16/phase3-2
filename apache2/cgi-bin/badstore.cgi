@@ -236,11 +236,13 @@ sub search
 		or die "Cannot connect"; ### removed verbose error message
 
 	### Prepare and Execute SQL Query ###
-	$sql="SELECT itemnum, sdesc, ldesc, price FROM itemdb WHERE '$squery' IN (itemnum,sdesc,ldesc)";
+	#FIXME: SQL INJECTION -> Solution on line 240?
+	my $sql="SELECT itemnum, sdesc, ldesc, price FROM itemdb WHERE ? IN (itemnum,sdesc,ldesc)";
+	
 	my $sth = $dbh->prepare($sql)
                 or die "Couldn't prepare SQL statement"; ### removed verbose error message
 	$temp=$sth;
-      $sth->execute() or die "Couldn't execute SQL statement"; ### removed verbose error message
+      $sth->execute($squery) or die "Couldn't execute SQL statement"; ### removed verbose error message
 
 	&printheaders;
 	print start_page("BadStore.net - Search Results");
@@ -320,6 +322,7 @@ sub adminportal
 	
 		### Prepare the Sales Report ###
 		if ($aquery eq 'View Sales Reports') {
+		## FIXME: Should be fine. No Injections.
 		my $sth = $dbh->prepare("SELECT * FROM orderdb ORDER BY 'orderdate','ordertime'")
 			or die "Couldn't prepare statement"; ### removed verbose error message
 		$sth->execute() or die "Couldn't execute SQL statement"; ### removed verbose error message
@@ -602,19 +605,19 @@ sub cartadd
 	} else {
 		### Connect to the SQL Database ###
 		my $dbh = DBI->connect("DBI:mysql:database=badstoredb;host=localhost", "root", "secret",{'RaiseError' => 1})
-			or die "Cannot connect"; ### removed verbose error message
+			or die "Cannot connect";
 
 		foreach $temp (@contents) {
 			$cartitems = $cartitems + 1;
-			my $sth = $dbh->prepare( "SELECT price FROM itemdb WHERE itemnum = '$temp'")
-            		or die "Couldn't prepare statement"; ### removed verbose error message
-          		$sth->execute() or die "Couldn't execute SQL statement"; ### removed verbose error message
+			$sth = $dbh->prepare( "SELECT price FROM itemdb WHERE itemnum = ?");
+			$sth->bind_param(1, $temp);
+			$sth->execute() or die "Couldn't execute SQL statement";
 
-          		if ($sth->rows == 0) {
-            		die "Item number not found"; ### removed verbose error message
-          		} else {
-			### Update cart cost ###
-			$cartcost = $cartcost + $sth->fetchrow_array();
+			if ($sth->rows == 0) {
+				die "Item number not found";
+			} else {
+				### Update cart cost ###
+				$cartcost = $cartcost + $sth->fetchrow_array();
 			}
 		}
 
@@ -647,6 +650,7 @@ sub order
 
 	### Expire the Cookie ###
 	$cartcookie=cookie( -name=>'CartID', -value=>'', -expires=>'-1d', -path=>'/');
+	## FIXME: Setting cookie
 	print "Set-Cookie: $cartcookie\n";
 
 	### Get the hidden fields ###
@@ -664,18 +668,15 @@ sub order
 
 		### Connect to the SQL Database ###
 		my $dbh = DBI->connect("DBI:mysql:database=badstoredb;host=localhost", "root", "secret",{'RaiseError' => 1})
-			or die "Cannot connect"; ### removed verbose error message
+			or die "Cannot connect";
 
-	### Add ordered items to Order Database ###
-	$dbh->do("INSERT INTO orderdb (sessid, orderdate, ordertime, ordercost, orderitems, itemlist, accountid, ipaddr, cartpaid, ccard, expdate) VALUES ('$id', CURDATE(), CURTIME(), '$price', '$items', '$cartitems', '$email', '$ipaddr', 'Y', '$ccard', '$expdate')")
-	or die "Couldn't prepare SQL statement for order"; ### removed verbose error message
-
-		print p("You have just bought the following:");
+		### Add ordered items to Order Database ###
+		my $q = $dbh->prepare("INSERT INTO orderdb (sessid, orderdate, ordertime, ordercost, orderitems, itemlist, accountid, ipaddr, cartpaid, ccard, expdate) VALUES (?, CURDATE(), CURTIME(), ?, ?, ?, ?, ?, 'Y', ?, ?)");
 
 		### Prepare and Execute SQL Query ###
 		my $sth = $dbh->prepare( "SELECT itemnum, sdesc, ldesc, price FROM itemdb WHERE itemnum IN ($cartitems)")
            		or die "Couldn't prepare statement"; ### removed verbose error message
-     		$sth->execute() or die "Couldn't execute SQL statement"; ### removed verbose error message
+     		$sth->execute($id, $price, $items, $cartitems, $email, $ipaddr, $ccard, $expdate) or die "Couldn't execute SQL statement"; ### removed verbose error message
      		if ($sth->rows == 0) {
            		die "Item number not found"; ### removed verbose error message
      		} else {
