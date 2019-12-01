@@ -14,7 +14,7 @@
               value="Search" 
               onfocus="(this.value!='Search'||(this.value=''));" 
               onblur="this.value||(this.value='Search');" 
-              pattern="[A-Za-z]"
+              pattern="[A-Za-z]+"
               />
             <input type="submit" value="Go" />
           </p>
