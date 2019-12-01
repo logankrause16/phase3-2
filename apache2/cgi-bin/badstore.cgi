@@ -670,9 +670,17 @@ sub order
 		my $dbh = DBI->connect("DBI:mysql:database=badstoredb;host=localhost", "root", "secret",{'RaiseError' => 1})
 			or die "Cannot connect";
 
-	### Add ordered items to Order Database ###
-	$dbh->do("INSERT INTO orderdb (sessid, orderdate, ordertime, ordercost, orderitems, itemlist, accountid, ipaddr, cartpaid, ccard, expdate) VALUES ('$id', CURDATE(), CURTIME(), '$price', '$items', '$cartitems', '$email', '$ipaddr', 'Y', '$ccard', '$expdate')")
-
+		### Add ordered items to Order Database ###
+		$sth = $dbh->prepare("INSERT INTO orderdb (sessid, orderdate, ordertime, ordercost, orderitems, itemlist, accountid, ipaddr, cartpaid, ccard, expdate) VALUES ('$id', CURDATE(), CURTIME(), '$price', '$items', '$cartitems', '$email', '$ipaddr', 'Y', '$ccard', '$expdate')")
+		$sth->bind_param(1, $id);
+		$sth->bind_param(2, $price);
+		$sth->bind_param(3, $items);
+		$sth->bind_param(4, $cartitems);
+		$sth->bind_param(5, $email);
+		$sth->bind_param(6, $ipaddr);
+		$sth->bind_param(7, $ccard);
+		$sth->bind_param(8, $expdate);
+		$sth->execute() or die "Couldn't do it fam";
 
 		print p("You have just bought the following:");
 
