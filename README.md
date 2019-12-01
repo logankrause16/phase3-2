@@ -21,3 +21,7 @@ docker run -d -p 80:80 jvhoof/badstore-docker
 
 ## License
 BadStore.net is currently available in English and Japanese language versions and was released under the terms of the GNU General Public License.
+
+
+## To run docker container
+sudo docker run -d -p 80:80 badstore/http:version1.0
