@@ -193,8 +193,8 @@ sub whatsnew
 
 	### Prepare and Execute SQL Query ###
 	my $sth = $dbh->prepare( "SELECT itemnum, sdesc, ldesc, price FROM itemdb WHERE isnew = 'Y'")
-                or die "Couldn't prepare statement: " . $dbh->errstr;
-          $sth->execute() or die "Couldn't execute SQL statement: " . $sth->errstr;
+                or die "Couldn't prepare statement";
+          $sth->execute() or die "Couldn't execute SQL statement";
 
 	&printheaders;
 	print start_page("What's New at BadStore.net");
@@ -232,14 +232,16 @@ sub search
 
 	### Connect to the SQL Database ###
 	my $dbh = DBI->connect("DBI:mysql:database=badstoredb;host=localhost", "root", "secret",{'RaiseError' => 1})
-		or die "Cannot connect: " . $DBI::errstr;
+		or die "Cannot connect: Connection Refused";
 
 	### Prepare and Execute SQL Query ###
-	$sql="SELECT itemnum, sdesc, ldesc, price FROM itemdb WHERE '" . encode_entities($squery) . "' IN (itemnum,sdesc,ldesc)";
+	#FIXME: SQL INJECTION -> Solution on line 240?
+	$sql="SELECT itemnum, sdesc, ldesc, price FROM itemdb WHERE ? IN (itemnum,sdesc,ldesc)";
+	$sql->bind_param(1, $squery);
 	my $sth = $dbh->prepare($sql)
-                or die "Couldn't prepare SQL statement: " . $dbh->errstr;
+                or die "Couldn't prepare SQL statement";
 	$temp=$sth;
-      $sth->execute() or die "Couldn't execute SQL statement: " . $sth->errstr;
+      $sth->execute() or die "Couldn't execute query";
 
 	&printheaders;
 	print start_page("BadStore.net - Search Results");
@@ -315,13 +317,14 @@ sub adminportal
 
 	### Connect to the SQL Database ###
 	my $dbh = DBI->connect("DBI:mysql:database=badstoredb;host=localhost", "root", "secret",{'RaiseError' => 1})
-	or die "Cannot connect: " . $DBI::errstr;
+	or die "Cannot connect";
 	
 		### Prepare the Sales Report ###
 		if ($aquery eq 'View Sales Reports') {
+		## FIXME: Should be fine. No Injections.
 		my $sth = $dbh->prepare("SELECT * FROM orderdb ORDER BY 'orderdate','ordertime'")
-			or die "Couldn't prepare statement: " . $dbh->errstr;
-		$sth->execute() or die "Couldn't execute SQL statement: " .$sth->errstr;
+			or die "Couldn't prepare statement";
+		$sth->execute() or die "Couldn't execute SQL statement";
 
 		print h2("<Center>BadStore.net Sales Report",p,&getdate,"</center>"), 
 		"<TABLE BORDER=1>",
@@ -338,8 +341,8 @@ sub adminportal
 			### Reset User Password ###
 			### Prepare and Execute SQL Query ###
 			my $sth = $dbh->prepare( "SELECT email FROM userdb")
-	            	    or die "Couldn't prepare statement: " . $dbh->errstr;
-		      $sth->execute() or die "Couldn't execute SQL statement: " . $sth->errstr;
+	            	    or die "Couldn't prepare statement";
+		      $sth->execute() or die "Couldn't execute SQL statement";
 			while (@data=$sth->fetchrow_array()) {
 				@ids=(@ids, $data[0]);
 			}
@@ -413,8 +416,8 @@ sub adminportal
 			### Delete User ###
 			### Prepare and Execute SQL Query ###
 			my $sth = $dbh->prepare( "SELECT email FROM userdb")
-	            	    or die "Couldn't prepare statement: " . $dbh->errstr;
-		      $sth->execute() or die "Couldn't execute SQL statement: " . $sth->errstr;
+	            	    or die "Couldn't prepare statement";
+		      $sth->execute() or die "Couldn't execute SQL statement";
 
 			while (@data=$sth->fetchrow_array()) {
 				@ids=(@ids, $data[0]);
@@ -451,11 +454,11 @@ sub adminportal
       }
       ### Backup the Tables ###
 			my $sth = $dbh->prepare( "SELECT * FROM orderdb INTO OUTFILE '/data/apache2/htdocs/backup/orderdb.bak'")
-	            	    or die "Couldn't prepare statement: " . $dbh->errstr;
-		      	$sth->execute() or die "Couldn't execute SQL statement: " . $sth->errstr;
+	            	    or die "Couldn't prepare statement";
+		      	$sth->execute() or die "Couldn't execute SQL statement";
 			my $sth = $dbh->prepare( "SELECT * FROM userdb INTO OUTFILE '/data/apache2/htdocs/backup/userdb.bak'")
-	            	    or die "Couldn't prepare statement: " . $dbh->errstr;
-		      	$sth->execute() or die "Couldn't execute SQL statement: " . $sth->errstr;
+	            	    or die "Couldn't prepare statement";
+		      	$sth->execute() or die "Couldn't execute SQL statement";
 			print h2("Database backup compete - files in www.badstore.net/backup");
 			}
 		### Disconnect from the databases ###
@@ -602,19 +605,19 @@ sub cartadd
 	} else {
 		### Connect to the SQL Database ###
 		my $dbh = DBI->connect("DBI:mysql:database=badstoredb;host=localhost", "root", "secret",{'RaiseError' => 1})
-			or die "Cannot connect: " . $DBI::errstr;
+			or die "Cannot connect";
 
 		foreach $temp (@contents) {
 			$cartitems = $cartitems + 1;
-			my $sth = $dbh->prepare( "SELECT price FROM itemdb WHERE itemnum = '$temp'")
-            		or die "Couldn't prepare statement: " . $dbh->errstr;
-          		$sth->execute() or die "Couldn't execute SQL statement: " . $sth->errstr;
+			$sth = $dbh->prepare( "SELECT price FROM itemdb WHERE itemnum = ?");
+			$sth->bind_param(1, $temp);
+			$sth->execute() or die "Couldn't execute SQL statement: " . $sth->errstr;
 
-          		if ($sth->rows == 0) {
-            		die "Item number not found: " . $sth->errstr;
-          		} else {
-			### Update cart cost ###
-			$cartcost = $cartcost + $sth->fetchrow_array();
+			if ($sth->rows == 0) {
+				die "Item number not found: " . $sth->errstr;
+			} else {
+				### Update cart cost ###
+				$cartcost = $cartcost + $sth->fetchrow_array();
 			}
 		}
 
@@ -647,6 +650,7 @@ sub order
 
 	### Expire the Cookie ###
 	$cartcookie=cookie( -name=>'CartID', -value=>'', -expires=>'-1d', -path=>'/');
+	## FIXME: Setting cookie
 	print "Set-Cookie: $cartcookie\n";
 
 	### Get the hidden fields ###
@@ -664,11 +668,11 @@ sub order
 
 		### Connect to the SQL Database ###
 		my $dbh = DBI->connect("DBI:mysql:database=badstoredb;host=localhost", "root", "secret",{'RaiseError' => 1})
-			or die "Cannot connect: " . $DBI::errstr;
+			or die "Cannot connect";
 
 	### Add ordered items to Order Database ###
 	$dbh->do("INSERT INTO orderdb (sessid, orderdate, ordertime, ordercost, orderitems, itemlist, accountid, ipaddr, cartpaid, ccard, expdate) VALUES ('$id', CURDATE(), CURTIME(), '$price', '$items', '$cartitems', '$email', '$ipaddr', 'Y', '$ccard', '$expdate')")
-	or die "Couldn't prepare SQL statement for order: " . $dbh->errstr;
+
 
 		print p("You have just bought the following:");
 
