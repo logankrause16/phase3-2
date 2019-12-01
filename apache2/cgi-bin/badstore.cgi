@@ -821,7 +821,7 @@ sub supplierlogin
 	print "<h2>Welcome Supplier - Please Login</h2>";
 	print '<form method="post" action="/cgi-bin/badstore.cgi?action=supplierportal">',
 	'<table cellspacing="0" cellpadding="0">',
-	  '<tr><td width="100">Email Address:</td><td><input type="text" name="email" size="15" maxlength="40" pattern="[A-Za-z\@\.\_]+"/></td></tr>',
+	  '<tr><td width="100">Email Address:</td><td><input type="email" name="email" size="15" minlength="7" maxlength="40" required /></td></tr>',
 	  '<tr><td>Password:</td><td><input type="text" name="passwd" size="8" maxlength="8" pattern="[A-Za-z]+"/></td></tr>',
 	  '<tr><td></td><td><input type="submit" value="Login" /></td></tr>',
      '</table>',
@@ -1037,11 +1037,11 @@ sub loginregister
      <table cellspacing="0" cellpadding="0">
        <tr>
          <td width="100">Email Address:</td>
-         <td><input type="text" name="email" size="20" maxlength="40" pattern="[A-Za-z]+"/></td>
+         <td><input type="email" name="email" required size="20" maxlength="40" /></td>
        </tr>
        <tr>
          <td>Password:</td>
-         <td><input type="password" name="passwd" size="8" maxlength="8" /></td>
+         <td><input type="password" name="passwd" required size="8" /></td>
        </tr>
        <tr>
          <td></td>
@@ -1059,11 +1059,11 @@ sub loginregister
        </tr>
        <tr>
          <td>Email Address:</td>
-         <td><input type="text" name="email" size="20" maxlength="40" pattern="[A-Za-z]+" /></td>
+         <td><input type="email" name="email" required size="20" minlength="7" maxlength="40" /></td>
        </tr>
        <tr>
-         <td>Password:</td>
-         <td><input type="password" name="passwd" required size="8" maxlength="8" /></td>
+         <td>Password: </td>
+         <td><input type="password" name="passwd" required size="8" pattern="(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{8,}"/></td>
        </tr>
        <tr>
          <td></td>
