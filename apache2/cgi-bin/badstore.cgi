@@ -236,11 +236,13 @@ sub search
 		or die "Cannot connect"; ### removed verbose error message
 
 	### Prepare and Execute SQL Query ###
-	$sql="SELECT itemnum, sdesc, ldesc, price FROM itemdb WHERE '$squery' IN (itemnum,sdesc,ldesc)";
+	#FIXME: SQL INJECTION -> Solution on line 240?
+	my $sql="SELECT itemnum, sdesc, ldesc, price FROM itemdb WHERE ? IN (itemnum,sdesc,ldesc)";
+	
 	my $sth = $dbh->prepare($sql)
                 or die "Couldn't prepare SQL statement"; ### removed verbose error message
 	$temp=$sth;
-      $sth->execute() or die "Couldn't execute SQL statement"; ### removed verbose error message
+      $sth->execute($squery) or die "Couldn't execute SQL statement"; ### removed verbose error message
 
 	&printheaders;
 	print start_page("BadStore.net - Search Results");
@@ -320,6 +322,7 @@ sub adminportal
 	
 		### Prepare the Sales Report ###
 		if ($aquery eq 'View Sales Reports') {
+		## FIXME: Should be fine. No Injections.
 		my $sth = $dbh->prepare("SELECT * FROM orderdb ORDER BY 'orderdate','ordertime'")
 			or die "Couldn't prepare statement"; ### removed verbose error message
 		$sth->execute() or die "Couldn't execute SQL statement"; ### removed verbose error message
@@ -486,9 +489,9 @@ sub guestbook
 	"Please complete this form to sign our Guestbook.  The email field is not required, but helps us contact you to respond to your feedback.  Thanks!",
 	p, "<TABLE BORDER=0 CELLLPADDING=10>";
 	print start_form(-method=>'POST', -action=>'/cgi-bin/badstore.cgi?action=doguestbook');
-	print Tr( td('Your Name:'), td('<INPUT TYPE=text NAME=name SIZE=30>'));
-	print Tr( td('Email:'), td('<INPUT TYPE=text NAME=email SIZE=40>'));
-    print Tr( td({-valign=>TOP},'Comments:'), td('<TEXTAREA NAME=comments COLS=60 ROWS=4></TEXTAREA>'));
+	print Tr( td('Your Name:'), td('<INPUT TYPE="text" NAME="name" SIZE="30" pattern="[A-Za-z]+">'));
+	print Tr( td('Email:'), td('<INPUT TYPE="text" NAME="email" SIZE="40" pattern="[A-Za-z\.\@\_]+">'));
+    print Tr( td({-valign=>TOP},'Comments:'), td('<TEXTAREA NAME=comments COLS=60 ROWS=4 pattern="[A-Za-z]+"></TEXTAREA>'));
     print Tr(td(''),td('<input type="submit" value="Add Entry" /> <input type="reset" value="Reset" />'));
 	print "</TABLE>\n\n",
 	end_form,
@@ -602,19 +605,19 @@ sub cartadd
 	} else {
 		### Connect to the SQL Database ###
 		my $dbh = DBI->connect("DBI:mysql:database=badstoredb;host=localhost", "root", "secret",{'RaiseError' => 1})
-			or die "Cannot connect"; ### removed verbose error message
+			or die "Cannot connect";
 
 		foreach $temp (@contents) {
 			$cartitems = $cartitems + 1;
-			my $sth = $dbh->prepare( "SELECT price FROM itemdb WHERE itemnum = '$temp'")
-            		or die "Couldn't prepare statement"; ### removed verbose error message
-          		$sth->execute() or die "Couldn't execute SQL statement"; ### removed verbose error message
+			$sth = $dbh->prepare( "SELECT price FROM itemdb WHERE itemnum = ?");
+			$sth->bind_param(1, $temp);
+			$sth->execute() or die "Couldn't execute SQL statement";
 
-          		if ($sth->rows == 0) {
-            		die "Item number not found"; ### removed verbose error message
-          		} else {
-			### Update cart cost ###
-			$cartcost = $cartcost + $sth->fetchrow_array();
+			if ($sth->rows == 0) {
+				die "Item number not found";
+			} else {
+				### Update cart cost ###
+				$cartcost = $cartcost + $sth->fetchrow_array();
 			}
 		}
 
@@ -647,6 +650,7 @@ sub order
 
 	### Expire the Cookie ###
 	$cartcookie=cookie( -name=>'CartID', -value=>'', -expires=>'-1d', -path=>'/');
+	## FIXME: Setting cookie
 	print "Set-Cookie: $cartcookie\n";
 
 	### Get the hidden fields ###
@@ -664,18 +668,15 @@ sub order
 
 		### Connect to the SQL Database ###
 		my $dbh = DBI->connect("DBI:mysql:database=badstoredb;host=localhost", "root", "secret",{'RaiseError' => 1})
-			or die "Cannot connect"; ### removed verbose error message
+			or die "Cannot connect";
 
-	### Add ordered items to Order Database ###
-	$dbh->do("INSERT INTO orderdb (sessid, orderdate, ordertime, ordercost, orderitems, itemlist, accountid, ipaddr, cartpaid, ccard, expdate) VALUES ('$id', CURDATE(), CURTIME(), '$price', '$items', '$cartitems', '$email', '$ipaddr', 'Y', '$ccard', '$expdate')")
-	or die "Couldn't prepare SQL statement for order"; ### removed verbose error message
-
-		print p("You have just bought the following:");
+		### Add ordered items to Order Database ###
+		my $q = $dbh->prepare("INSERT INTO orderdb (sessid, orderdate, ordertime, ordercost, orderitems, itemlist, accountid, ipaddr, cartpaid, ccard, expdate) VALUES (?, CURDATE(), CURTIME(), ?, ?, ?, ?, ?, 'Y', ?, ?)");
 
 		### Prepare and Execute SQL Query ###
 		my $sth = $dbh->prepare( "SELECT itemnum, sdesc, ldesc, price FROM itemdb WHERE itemnum IN ($cartitems)")
            		or die "Couldn't prepare statement"; ### removed verbose error message
-     		$sth->execute() or die "Couldn't execute SQL statement"; ### removed verbose error message
+     		$sth->execute($id, $price, $items, $cartitems, $email, $ipaddr, $ccard, $expdate) or die "Couldn't execute SQL statement"; ### removed verbose error message
      		if ($sth->rows == 0) {
            		die "Item number not found"; ### removed verbose error message
      		} else {
@@ -821,7 +822,7 @@ sub supplierlogin
 	print '<form method="post" action="/cgi-bin/badstore.cgi?action=supplierportal">',
 	'<table cellspacing="0" cellpadding="0">',
 	  '<tr><td width="100">Email Address:</td><td><input type="email" name="email" size="15" minlength="7" maxlength="40" required /></td></tr>',
-	  '<tr><td>Password:</td><td><input type="password" name="passwd" size="8" required /></td></tr>',
+	  '<tr><td>Password:</td><td><input type="text" name="passwd" size="8" maxlength="8" pattern="[A-Za-z]+"/></td></tr>',
 	  '<tr><td></td><td><input type="submit" value="Login" /></td></tr>',
      '</table>',
     '</form>';
@@ -881,9 +882,9 @@ sub supplierportal
 		or die "Cannot connect"; ### removed verbose error message
 
 	### Prepare, Evaluate and Execute SQL Query ###
-	my $sth = $dbh->prepare("SELECT * FROM userdb WHERE email='$email' AND passwd='$passwd' ");
+	my $sth = $dbh->prepare("SELECT * FROM userdb WHERE email=? AND passwd=? ");
 	eval {
-	     	$sth->execute();
+	     	$sth->execute($email, $passwd);
 		1;
 	} or do {
 		print "Location: /cgi-bin/badstore.cgi?action=supplierlogin\n\n";
@@ -984,9 +985,9 @@ sub cartview
          print p("Cart Contains: $items items at $price. The following items are in your cart:");
 
 		### Prepare and Execute SQL Query ###
-		my $sth = $dbh->prepare( "SELECT itemnum, sdesc, ldesc, price FROM itemdb WHERE itemnum IN ($cartitems)")
+		my $sth = $dbh->prepare( "SELECT itemnum, sdesc, ldesc, price FROM itemdb WHERE itemnum IN (?)")
            		or die "Couldn't prepare statement"; ### removed verbose error message
-     		$sth->execute() or die "Couldn't execute SQL statement"; ### removed verbose error message
+     		$sth->execute($cartitems) or die "Couldn't execute SQL statement"; ### removed verbose error message
      		if ($sth->rows == 0) {
            		die "Item number not found"; ### removed verbose error message
      		} else {
@@ -1054,7 +1055,7 @@ sub loginregister
      <table cellspacing="0" cellpadding="0">
        <tr>
          <td width="100">Full Name:</td>
-         <td><input type="text" name="fullname" required size="25" maxlength="40" /></td>
+         <td><input type="text" name="fullname" size="25" maxlength="40" pattern="[A-Za-z]+"/></td>
        </tr>
        <tr>
          <td>Email Address:</td>
@@ -1229,9 +1230,9 @@ sub authuser
 	if ($query->url_param('action') eq 'login') {
 
 		### Prepare and Execute SQL Query to Verify Credentials ###
-		my $sth = $dbh->prepare("SELECT * FROM userdb WHERE email='$email' AND passwd='$passwd'")
+		my $sth = $dbh->prepare("SELECT * FROM userdb WHERE email=? AND passwd=?")
       		or die "Couldn't prepare statement"; ### removed verbose error message
-     		$sth->execute() or die "Couldn't execute SQL statement"; ### removed verbose error message
+     		$sth->execute($email, $passwd) or die "Couldn't execute SQL statement"; ### removed verbose error message
 
 		if ($sth->rows == 0) {
 			&printheaders;
@@ -1254,8 +1255,9 @@ sub authuser
 
 		### Register for a new account as a normal user ###
 		### Add ordered items to Order Database ###
-		$dbh->do("INSERT INTO userdb (email, passwd, fullname, role) VALUES ('$email', '$passwd', '$fullname', '$role')")
+		my $sth = $dbh->do("INSERT INTO userdb (email, passwd, fullname, role) VALUES (?, ?, ?, ?)")
 			or die "Couldn't prepare SQL statement for Registration"; ### removed verbose error message
+			$sth->execute($email, $passwd, $fullname, $role)
 	}
 
 	### Set SSO Cookie ###
