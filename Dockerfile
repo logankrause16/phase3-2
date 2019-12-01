@@ -13,6 +13,8 @@ RUN apt-get update && apt-get install -y \
     locales && \
     apt-get clean && rm -r /var/lib/apt/lists/*
 
+RUN apt-get update
+
 COPY apache2/conf/badstore.conf /etc/apache2/sites-available/
 
 # Setup Apache
