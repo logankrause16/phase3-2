@@ -113,9 +113,11 @@ if ($action eq 'whatsnew')
    &supupload;
 
 } elsif ($action eq 'admin') {
+	### check cookie value here to see if use is logged in and is admin
    &admin;
 
 } elsif ($query->url_param('action') eq 'adminportal') {
+	### check cookie value here to see if use is logged in and is admin
    &adminportal;
 
 } elsif ($action eq 'myaccount'){
@@ -189,12 +191,12 @@ sub whatsnew
 
 	### Connect to the SQL Database ###
 	my $dbh = DBI->connect("DBI:mysql:database=badstoredb;host=localhost", "root", "secret",{'RaiseError' => 1})
-		or die "Cannot connect: " . $DBI::errstr;
+		or die "Cannot connect"; ### removed verbose error message
 
 	### Prepare and Execute SQL Query ###
 	my $sth = $dbh->prepare( "SELECT itemnum, sdesc, ldesc, price FROM itemdb WHERE isnew = 'Y'")
-                or die "Couldn't prepare statement";
-          $sth->execute() or die "Couldn't execute SQL statement";
+                or die "Couldn't prepare statement"; ### removed verbose error message
+          $sth->execute() or die "Couldn't execute SQL statement"; ### removed verbose error message
 
 	&printheaders;
 	print start_page("What's New at BadStore.net");
@@ -232,16 +234,16 @@ sub search
 
 	### Connect to the SQL Database ###
 	my $dbh = DBI->connect("DBI:mysql:database=badstoredb;host=localhost", "root", "secret",{'RaiseError' => 1})
-		or die "Cannot connect: Connection Refused";
+		or die "Cannot connect"; ### removed verbose error message
 
 	### Prepare and Execute SQL Query ###
 	#FIXME: SQL INJECTION -> Solution on line 240?
 	$sql="SELECT itemnum, sdesc, ldesc, price FROM itemdb WHERE ? IN (itemnum,sdesc,ldesc)";
 	$sql->bind_param(1, $squery);
 	my $sth = $dbh->prepare($sql)
-                or die "Couldn't prepare SQL statement";
+                or die "Couldn't prepare SQL statement"; ### removed verbose error message
 	$temp=$sth;
-      $sth->execute() or die "Couldn't execute query";
+      $sth->execute() or die "Couldn't execute SQL statement"; ### removed verbose error message
 
 	&printheaders;
 	print start_page("BadStore.net - Search Results");
@@ -317,14 +319,14 @@ sub adminportal
 
 	### Connect to the SQL Database ###
 	my $dbh = DBI->connect("DBI:mysql:database=badstoredb;host=localhost", "root", "secret",{'RaiseError' => 1})
-	or die "Cannot connect";
+	or die "Cannot connect"; ### removed verbose error message
 	
 		### Prepare the Sales Report ###
 		if ($aquery eq 'View Sales Reports') {
 		## FIXME: Should be fine. No Injections.
 		my $sth = $dbh->prepare("SELECT * FROM orderdb ORDER BY 'orderdate','ordertime'")
-			or die "Couldn't prepare statement";
-		$sth->execute() or die "Couldn't execute SQL statement";
+			or die "Couldn't prepare statement"; ### removed verbose error message
+		$sth->execute() or die "Couldn't execute SQL statement"; ### removed verbose error message
 
 		print h2("<Center>BadStore.net Sales Report",p,&getdate,"</center>"), 
 		"<TABLE BORDER=1>",
@@ -341,8 +343,8 @@ sub adminportal
 			### Reset User Password ###
 			### Prepare and Execute SQL Query ###
 			my $sth = $dbh->prepare( "SELECT email FROM userdb")
-	            	    or die "Couldn't prepare statement";
-		      $sth->execute() or die "Couldn't execute SQL statement";
+	            	    or die "Couldn't prepare statement"; ### removed verbose error message
+		      $sth->execute() or die "Couldn't execute SQL statement"; ### removed verbose error message
 			while (@data=$sth->fetchrow_array()) {
 				@ids=(@ids, $data[0]);
 			}
@@ -416,8 +418,8 @@ sub adminportal
 			### Delete User ###
 			### Prepare and Execute SQL Query ###
 			my $sth = $dbh->prepare( "SELECT email FROM userdb")
-	            	    or die "Couldn't prepare statement";
-		      $sth->execute() or die "Couldn't execute SQL statement";
+	            	    or die "Couldn't prepare statement"; ### removed verbose error message
+		      $sth->execute() or die "Couldn't execute SQL statement"; ### removed verbose error message
 
 			while (@data=$sth->fetchrow_array()) {
 				@ids=(@ids, $data[0]);
@@ -436,8 +438,8 @@ sub adminportal
 			### Show Current Users ###
 			### Prepare and Execute SQL Query ###
 			my $sth = $dbh->prepare( "SELECT * FROM userdb")
-	            	    or die "Couldn't prepare statement: " . $dbh->errstr;
-		      $sth->execute() or die "Couldn't execute SQL statement: " . $sth->errstr;
+	            	    or die "Couldn't prepare statement"; ### removed verbose error message
+		      $sth->execute() or die "Couldn't execute SQL statement"; ### removed verbose error message
 			print "<TABLE BORDER=1>",
 			Tr(th('Email Address'),th('Password'),th('Pass Hint'),th('Full Name'),th('Role'));	
 			while (@data=$sth->fetchrow_array()) {
@@ -454,11 +456,11 @@ sub adminportal
       }
       ### Backup the Tables ###
 			my $sth = $dbh->prepare( "SELECT * FROM orderdb INTO OUTFILE '/data/apache2/htdocs/backup/orderdb.bak'")
-	            	    or die "Couldn't prepare statement";
-		      	$sth->execute() or die "Couldn't execute SQL statement";
+	            	    or die "Couldn't prepare statement"; ### removed verbose error message
+		      	$sth->execute() or die "Couldn't execute SQL statement"; ### removed verbose error message
 			my $sth = $dbh->prepare( "SELECT * FROM userdb INTO OUTFILE '/data/apache2/htdocs/backup/userdb.bak'")
-	            	    or die "Couldn't prepare statement";
-		      	$sth->execute() or die "Couldn't execute SQL statement";
+	            	    or die "Couldn't prepare statement"; ### removed verbose error message
+		      	$sth->execute() or die "Couldn't execute SQL statement"; ### removed verbose error message
 			print h2("Database backup compete - files in www.badstore.net/backup");
 			}
 		### Disconnect from the databases ###
@@ -611,10 +613,10 @@ sub cartadd
 			$cartitems = $cartitems + 1;
 			$sth = $dbh->prepare( "SELECT price FROM itemdb WHERE itemnum = ?");
 			$sth->bind_param(1, $temp);
-			$sth->execute() or die "Couldn't execute SQL statement: " . $sth->errstr;
+			$sth->execute() or die "Couldn't execute SQL statement";
 
 			if ($sth->rows == 0) {
-				die "Item number not found: " . $sth->errstr;
+				die "Item number not found";
 			} else {
 				### Update cart cost ###
 				$cartcost = $cartcost + $sth->fetchrow_array();
@@ -686,10 +688,10 @@ sub order
 
 		### Prepare and Execute SQL Query ###
 		my $sth = $dbh->prepare( "SELECT itemnum, sdesc, ldesc, price FROM itemdb WHERE itemnum IN ($cartitems)")
-           		or die "Couldn't prepare statement: " . $dbh->errstr;
-     		$sth->execute() or die "Couldn't execute SQL statement: " . $sth->errstr;
+           		or die "Couldn't prepare statement"; ### removed verbose error message
+     		$sth->execute() or die "Couldn't execute SQL statement"; ### removed verbose error message
      		if ($sth->rows == 0) {
-           		die "Item number not found: " . $sth->errstr;
+           		die "Item number not found"; ### removed verbose error message
      		} else {
 		### Read the matching records and print them out ###
 		print '<table cellspacing="0" cellpadding="0" class="products">',
@@ -773,11 +775,11 @@ sub viewprevious
 	} else {
 		### Connect to the SQL Database ###
 		my $dbh = DBI->connect("DBI:mysql:database=badstoredb;host=localhost", "root", "secret",{'RaiseError' => 1})
-			or die "Cannot connect: " . $DBI::errstr;
+			or die "Cannot connect"; ### removed verbose error message
 
 		my $sth = $dbh->prepare( "SELECT orderdate, ordercost, orderitems, itemlist, ccard FROM orderdb WHERE accountid = '$email' ORDER BY orderdate,ordertime")
-                or die "Couldn't prepare statement: " . $dbh->errstr;
-        	$sth->execute() or die "Couldn't execute SQL statement: " . $sth->errstr;
+                or die "Couldn't prepare statement"; ### removed verbose error message
+        	$sth->execute() or die "Couldn't execute SQL statement"; ### removed verbose error message
 
      		if ($sth->rows == 0) {
                print p('You have no previous orders!'), p("Use your browser's Back button and select Login.");
@@ -890,7 +892,7 @@ sub supplierportal
 
 	### Connect to the SQL Database ###
 	my $dbh = DBI->connect("DBI:mysql:database=badstoredb;host=localhost", "root", "secret",{'RaiseError' => 1})
-		or die "Cannot connect: " . $DBI::errstr;
+		or die "Cannot connect"; ### removed verbose error message
 
 	### Prepare, Evaluate and Execute SQL Query ###
 	my $sth = $dbh->prepare("SELECT * FROM userdb WHERE email='$email' AND passwd='$passwd' ");
@@ -991,16 +993,16 @@ sub cartview
 	} else {
 		### Connect to the SQL Database ###
 		my $dbh = DBI->connect("DBI:mysql:database=badstoredb;host=localhost", "root", "secret",{'RaiseError' => 1})
-			or die "Cannot connect: " . $DBI::errstr;
+			or die "Cannot connect"; ### removed verbose error message
 
          print p("Cart Contains: $items items at $price. The following items are in your cart:");
 
 		### Prepare and Execute SQL Query ###
 		my $sth = $dbh->prepare( "SELECT itemnum, sdesc, ldesc, price FROM itemdb WHERE itemnum IN ($cartitems)")
-           		or die "Couldn't prepare statement: " . $dbh->errstr;
-     		$sth->execute() or die "Couldn't execute SQL statement: " . $sth->errstr;
+           		or die "Couldn't prepare statement"; ### removed verbose error message
+     		$sth->execute() or die "Couldn't execute SQL statement"; ### removed verbose error message
      		if ($sth->rows == 0) {
-           		die "Item number not found: " . $sth->errstr;
+           		die "Item number not found"; ### removed verbose error message
      		} else {
 		### Read the matching records and print them out ###
 		print start_form( -action=>'/cgi-bin/badstore.cgi?action=submitpayment'),'<table cellspacing="0" cellpadding="0" class="products">',
@@ -1199,14 +1201,14 @@ sub moduser
 
 	### Connect to the SQL Database ###
 	my $dbh = DBI->connect("DBI:mysql:database=badstoredb;host=localhost", "root", "secret",{'RaiseError' => 1})
-		or die "Cannot connect: " . $DBI::errstr;
+		or die "Cannot connect"; ### removed verbose error message
 
 	### Reset User Password ###
 	if ($aquery eq 'Reset User Password') {
 		print start_page('BadStore.net - Reset Password for User');
 		### Prepare and Execute SQL Query ###
-		my $sth=$dbh->prepare("UPDATE userdb SET passwd = '$encpasswd' WHERE email='$email'")
-			or die "Could not update password: ".$dbh->errstr;
+		my $sth=$dbh->prepare("UPDATE userdb SET passwd = '$encpasswd' WHERE email='$email' AND pwdhint='$pwdhint'")
+			or die "Could not update password"; ### removed verbose error message
 		$sth->execute() or die "Couldn't execute SQL statement: ".$sth->errstr;
 	
 		print h2('The password for user:  ', $email,p, ' ...has been reset to: ',$newpasswd),
@@ -1214,24 +1216,24 @@ sub moduser
 	}elsif ($aquery eq 'Add User'){
 		print start_page('BadStore.net - Add User');
 		$dbh->do("INSERT INTO userdb (email, passwd, pwdhint, fullname, role) VALUES ('$email','$encpasswd','$pwdhint', '$fullname', '$role')")
-			or die "Couldn't prepare SQL statement for Registration: " . $dbh->errstr;
+			or die "Couldn't prepare SQL statement for Registration"; ### removed verbose error message
 		print h2("User:  ",$fullname," has been added.");
 
 	}elsif ($aquery eq 'Delete User'){
 		print start_page('BadStore.net - Delete User');
 		$dbh->do("DELETE FROM userdb WHERE email='$email'")
-			or die "Couldn't prepare SQL statement for Registration: " . $dbh->errstr;
+			or die "Couldn't prepare SQL statement for Registration"; ### removed verbose error message
 		print h2("User:  ",$email," has been deleted.");
 
 	### Change Account Information ###
 	}elsif ($aquery eq 'Change Account'){
 		print start_page('BadStore.net - Update User Information');
 		$dbh->do("UPDATE userdb SET fullname='$fullname' WHERE email='$email'")
-			or die "Couldn't prepare SQL statement: " .$dbh->errstr;
+			or die "Couldn't prepare SQL statement"; ### removed verbose error message
 		$dbh->do("UPDATE userdb SET passwd='$vencpasswd' WHERE email='$email'")
-			or die "Couldn't prepare SQL statement: " .$dbh->errstr;
+			or die "Couldn't prepare SQL statement"; ### removed verbose error message
 		$dbh->do("UPDATE userdb SET email='$newemail' WHERE email='$email'")
-			or die "Couldn't prepare SQL statement: " .$dbh->errstr;
+			or die "Couldn't prepare SQL statement"; ### removed verbose error message
 		print h2(" Account Information for: "),
 		" Full Name: ",$fullname,p," Email: ",$newemail,p," Password: ",$vnewpasswd,p,
 		h3(" Has been updated!");
@@ -1263,15 +1265,15 @@ sub authuser
 
 	### Connect to the SQL Database ###
 	my $dbh = DBI->connect("DBI:mysql:database=badstoredb;host=localhost", "root", "secret",{'RaiseError' => 1})
-		or die "Cannot connect: " . $DBI::errstr;
+		or die "Cannot connect"; ### removed verbose error message
 
 	### Logging into existing account ###
 	if ($query->url_param('action') eq 'login') {
 
 		### Prepare and Execute SQL Query to Verify Credentials ###
 		my $sth = $dbh->prepare("SELECT * FROM userdb WHERE email='$email' AND passwd='$passwd'")
-      		or die "Couldn't prepare statement: " . $dbh->errstr;
-     		$sth->execute() or die "Couldn't execute SQL statement: " . $sth->errstr;
+      		or die "Couldn't prepare statement"; ### removed verbose error message
+     		$sth->execute() or die "Couldn't execute SQL statement"; ### removed verbose error message
 
 		if ($sth->rows == 0) {
 			&printheaders;
@@ -1295,7 +1297,7 @@ sub authuser
 		### Register for a new account as a normal user ###
 		### Add ordered items to Order Database ###
 		$dbh->do("INSERT INTO userdb (email, passwd, pwdhint, fullname, role) VALUES ('$email', '$passwd','$pwdhint', '$fullname', '$role')")
-			or die "Couldn't prepare SQL statement for Registration: " . $dbh->errstr;
+			or die "Couldn't prepare SQL statement for Registration"; ### removed verbose error message
 	}
 
 	### Set SSO Cookie ###
