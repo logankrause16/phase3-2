@@ -237,7 +237,7 @@ sub search
 		or die "Cannot connect"; ### removed verbose error message
 
 	### Prepare and Execute SQL Query ###
-	$sql="SELECT itemnum, sdesc, ldesc, price FROM itemdb WHERE '" . encode_entities($squery) . "' IN (itemnum,sdesc,ldesc)";
+	$sql="SELECT itemnum, sdesc, ldesc, price FROM itemdb WHERE '$squery' IN (itemnum,sdesc,ldesc)";
 	my $sth = $dbh->prepare($sql)
                 or die "Couldn't prepare SQL statement"; ### removed verbose error message
 	$temp=$sth;
