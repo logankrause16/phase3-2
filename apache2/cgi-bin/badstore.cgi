@@ -34,7 +34,7 @@ use CGI::Carp qw(fatalsToBrowser);
 use DBI;
 use CGI qw(:standard :html4);
 use Digest::MD5 qw(md5_hex);
-use MIME::Base64;docker invalid reference format ubuntu
+use MIME::Base64; #docker  #invalid reference format ubuntu
 ### Setup Global Variables ###
 $time = time;
 $ipaddr = $ENV{'REMOTE_ADDR'};
@@ -237,12 +237,12 @@ sub search
 
 	### Prepare and Execute SQL Query ###
 	#FIXME: SQL INJECTION -> Solution on line 240?
-	$sql="SELECT itemnum, sdesc, ldesc, price FROM itemdb WHERE ? IN (itemnum,sdesc,ldesc)";
-	$sql->bind_param(1, $squery);
+	my $sql="SELECT itemnum, sdesc, ldesc, price FROM itemdb WHERE ? IN (itemnum,sdesc,ldesc)";
+	
 	my $sth = $dbh->prepare($sql)
                 or die "Couldn't prepare SQL statement"; ### removed verbose error message
 	$temp=$sth;
-      $sth->execute() or die "Couldn't execute SQL statement"; ### removed verbose error message
+      $sth->execute($squery) or die "Couldn't execute SQL statement"; ### removed verbose error message
 
 	&printheaders;
 	print start_page("BadStore.net - Search Results");
@@ -671,18 +671,16 @@ sub order
 			or die "Cannot connect";
 
 		### Add ordered items to Order Database ###
-		$sth = $dbh->prepare("INSERT INTO orderdb (sessid, orderdate, ordertime, ordercost, orderitems, itemlist, accountid, ipaddr, cartpaid, ccard, expdate) VALUES ('$id', CURDATE(), CURTIME(), '$price', '$items', '$cartitems', '$email', '$ipaddr', 'Y', '$ccard', '$expdate')")
-		$sth->bind_param(1, $id);
-		$sth->bind_param(2, $price);
-		$sth->bind_param(3, $items);
-		$sth->bind_param(4, $cartitems);
-		$sth->bind_param(5, $email);
-		$sth->bind_param(6, $ipaddr);
-		$sth->bind_param(7, $ccard);
-		$sth->bind_param(8, $expdate);
-		$sth->execute() or die "Couldn't do it fam";
-
-		print p("You have just bought the following:");
+		my $q = $dbh->prepare("INSERT INTO orderdb (sessid, orderdate, ordertime, ordercost, orderitems, itemlist, accountid, ipaddr, cartpaid, ccard, expdate) VALUES (?, CURDATE(), CURTIME(), ?, ?, ?, ?, ?, 'Y', ?, ?)");
+		$q->bind_param(1, $id);
+		$q->bind_param(2, $price);
+		$q->bind_param(3, $items);
+		$q->bind_param(4, $cartitems);
+		$q->bind_param(5, $email);
+		$q->bind_param(6, $ipaddr);
+		$q->bind_param(7, $ccard);
+		$q->bind_param(8, $expdate);
+		$q->execute();
 
 		### Prepare and Execute SQL Query ###
 		my $sth = $dbh->prepare( "SELECT itemnum, sdesc, ldesc, price FROM itemdb WHERE itemnum IN ($cartitems)")
