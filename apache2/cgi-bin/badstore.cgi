@@ -486,9 +486,9 @@ sub guestbook
 	"Please complete this form to sign our Guestbook.  The email field is not required, but helps us contact you to respond to your feedback.  Thanks!",
 	p, "<TABLE BORDER=0 CELLLPADDING=10>";
 	print start_form(-method=>'POST', -action=>'/cgi-bin/badstore.cgi?action=doguestbook');
-	print Tr( td('Your Name:'), td('<INPUT TYPE=text NAME=name SIZE=30>'));
-	print Tr( td('Email:'), td('<INPUT TYPE=text NAME=email SIZE=40>'));
-    print Tr( td({-valign=>TOP},'Comments:'), td('<TEXTAREA NAME=comments COLS=60 ROWS=4></TEXTAREA>'));
+	print Tr( td('Your Name:'), td('<INPUT TYPE=text NAME=name SIZE=30 pattern="[A-Za-z]">'));
+	print Tr( td('Email:'), td('<INPUT TYPE=text NAME=email SIZE=40 pattern="[A-Za-z]">'));
+    print Tr( td({-valign=>TOP},'Comments:'), td('<TEXTAREA NAME=comments COLS=60 ROWS=4 pattern="[A-Za-z]"></TEXTAREA>'));
     print Tr(td(''),td('<input type="submit" value="Add Entry" /> <input type="reset" value="Reset" />'));
 	print "</TABLE>\n\n",
 	end_form,
@@ -820,8 +820,8 @@ sub supplierlogin
 	print "<h2>Welcome Supplier - Please Login</h2>";
 	print '<form method="post" action="/cgi-bin/badstore.cgi?action=supplierportal">',
 	'<table cellspacing="0" cellpadding="0">',
-	  '<tr><td width="100">Email Address:</td><td><input type="text" name="email" size="15" maxlength="40" /></td></tr>',
-	  '<tr><td>Password:</td><td><input type="text" name="passwd" size="8" maxlength="8" /></td></tr>',
+	  '<tr><td width="100">Email Address:</td><td><input type="text" name="email" size="15" maxlength="40" pattern="[A-Za-z]"/></td></tr>',
+	  '<tr><td>Password:</td><td><input type="text" name="passwd" size="8" maxlength="8" pattern="[A-Za-z]"/></td></tr>',
 	  '<tr><td></td><td><input type="submit" value="Login" /></td></tr>',
      '</table>',
     '</form>';
@@ -1036,7 +1036,7 @@ sub loginregister
      <table cellspacing="0" cellpadding="0">
        <tr>
          <td width="100">Email Address:</td>
-         <td><input type="text" name="email" size="20" maxlength="40" /></td>
+         <td><input type="text" name="email" size="20" maxlength="40" pattern="[A-Za-z]"/></td>
        </tr>
        <tr>
          <td>Password:</td>
@@ -1054,11 +1054,11 @@ sub loginregister
      <table cellspacing="0" cellpadding="0">
        <tr>
          <td width="100">Full Name:</td>
-         <td><input type="text" name="fullname" size="25" maxlength="40" /></td>
+         <td><input type="text" name="fullname" size="25" maxlength="40" pattern="[A-Za-z]"/></td>
        </tr>
        <tr>
          <td>Email Address:</td>
-         <td><input type="text" name="email" size="20" maxlength="40" /></td>
+         <td><input type="text" name="email" size="20" maxlength="40" pattern="[A-Za-z]" /></td>
        </tr>
        <tr>
          <td>Password:</td>

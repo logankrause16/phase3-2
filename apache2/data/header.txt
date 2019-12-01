@@ -6,7 +6,16 @@
         <form method="get" action="badstore.cgi">
           <p>            
             <input type="hidden" name="action" value="search" />
-            <input type="text" id="searchquery" name="searchquery" size="10" value="Search" onfocus="(this.value!='Search'||(this.value=''));" onblur="this.value||(this.value='Search');" />
+            <input 
+              type="text" 
+              id="searchquery" 
+              name="searchquery" 
+              size="10" 
+              value="Search" 
+              onfocus="(this.value!='Search'||(this.value=''));" 
+              onblur="this.value||(this.value='Search');" 
+              pattern="[A-Za-z]"
+              />
             <input type="submit" value="Go" />
           </p>
         </form>
