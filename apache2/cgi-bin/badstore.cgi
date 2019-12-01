@@ -34,7 +34,7 @@ use CGI::Carp qw(fatalsToBrowser);
 use DBI;
 use CGI qw(:standard :html4);
 use Digest::MD5 qw(md5_hex);
-use MIME::Base64;docker invalid reference format ubuntu
+use MIME::Base64;
 ### Setup Global Variables ###
 $time = time;
 $ipaddr = $ENV{'REMOTE_ADDR'};
@@ -1170,12 +1170,8 @@ sub moduser
 	### Reset User Password ###
 	if ($aquery eq 'Reset User Password') {
 		print start_page('BadStore.net - Reset Password for User');
-		### Prepare and Execute SQL Query ###
-		my $sth=$dbh->prepare("UPDATE userdb SET passwd = '$encpasswd' WHERE email='$email' AND pwdhint='$pwdhint'")
-			or die "Could not update password"; ### removed verbose error message
-		$sth->execute() or die "Couldn't execute SQL statement: ".$sth->errstr;
-	
-		print h2('The password for user:  ', $email,p, ' ...has been reset to: ',$newpasswd),
+		### Print a fake password reset statement ###
+		print h2('A password reset link has been sent to:  ', $email),
 
 	}elsif ($aquery eq 'Add User'){
 		print start_page('BadStore.net - Add User');
