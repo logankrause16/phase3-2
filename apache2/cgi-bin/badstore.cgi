@@ -113,9 +113,11 @@ if ($action eq 'whatsnew')
    &supupload;
 
 } elsif ($action eq 'admin') {
+	### check cookie value here to see if use is logged in and is admin
    &admin;
 
 } elsif ($query->url_param('action') eq 'adminportal') {
+	### check cookie value here to see if use is logged in and is admin
    &adminportal;
 
 } elsif ($action eq 'myaccount'){
@@ -193,7 +195,7 @@ sub whatsnew
 
 	### Prepare and Execute SQL Query ###
 	my $sth = $dbh->prepare( "SELECT itemnum, sdesc, ldesc, price FROM itemdb WHERE isnew = 'Y'")
-                or die "Couldn't prepare statement: " . $dbh->errstr;
+                or die "Couldn't prepare statement"; ### removed verbose error message
           $sth->execute() or die "Couldn't execute SQL statement: " . $sth->errstr;
 
 	&printheaders;
@@ -237,7 +239,7 @@ sub search
 	### Prepare and Execute SQL Query ###
 	$sql="SELECT itemnum, sdesc, ldesc, price FROM itemdb WHERE '" . encode_entities($squery) . "' IN (itemnum,sdesc,ldesc)";
 	my $sth = $dbh->prepare($sql)
-                or die "Couldn't prepare SQL statement: " . $dbh->errstr;
+                or die "Couldn't prepare SQL statement"; ### removed verbose error message
 	$temp=$sth;
       $sth->execute() or die "Couldn't execute SQL statement: " . $sth->errstr;
 
@@ -320,7 +322,7 @@ sub adminportal
 		### Prepare the Sales Report ###
 		if ($aquery eq 'View Sales Reports') {
 		my $sth = $dbh->prepare("SELECT * FROM orderdb ORDER BY 'orderdate','ordertime'")
-			or die "Couldn't prepare statement: " . $dbh->errstr;
+			or die "Couldn't prepare statement"; ### removed verbose error message
 		$sth->execute() or die "Couldn't execute SQL statement: " .$sth->errstr;
 
 		print h2("<Center>BadStore.net Sales Report",p,&getdate,"</center>"), 
@@ -338,7 +340,7 @@ sub adminportal
 			### Reset User Password ###
 			### Prepare and Execute SQL Query ###
 			my $sth = $dbh->prepare( "SELECT email FROM userdb")
-	            	    or die "Couldn't prepare statement: " . $dbh->errstr;
+	            	    or die "Couldn't prepare statement"; ### removed verbose error message
 		      $sth->execute() or die "Couldn't execute SQL statement: " . $sth->errstr;
 			while (@data=$sth->fetchrow_array()) {
 				@ids=(@ids, $data[0]);
@@ -413,7 +415,7 @@ sub adminportal
 			### Delete User ###
 			### Prepare and Execute SQL Query ###
 			my $sth = $dbh->prepare( "SELECT email FROM userdb")
-	            	    or die "Couldn't prepare statement: " . $dbh->errstr;
+	            	    or die "Couldn't prepare statement"; ### removed verbose error message
 		      $sth->execute() or die "Couldn't execute SQL statement: " . $sth->errstr;
 
 			while (@data=$sth->fetchrow_array()) {
@@ -433,7 +435,7 @@ sub adminportal
 			### Show Current Users ###
 			### Prepare and Execute SQL Query ###
 			my $sth = $dbh->prepare( "SELECT * FROM userdb")
-	            	    or die "Couldn't prepare statement: " . $dbh->errstr;
+	            	    or die "Couldn't prepare statement"; ### removed verbose error message
 		      $sth->execute() or die "Couldn't execute SQL statement: " . $sth->errstr;
 			print "<TABLE BORDER=1>",
 			Tr(th('Email Address'),th('Password'),th('Pass Hint'),th('Full Name'),th('Role'));	
@@ -451,10 +453,10 @@ sub adminportal
       }
       ### Backup the Tables ###
 			my $sth = $dbh->prepare( "SELECT * FROM orderdb INTO OUTFILE '/data/apache2/htdocs/backup/orderdb.bak'")
-	            	    or die "Couldn't prepare statement: " . $dbh->errstr;
+	            	    or die "Couldn't prepare statement"; ### removed verbose error message
 		      	$sth->execute() or die "Couldn't execute SQL statement: " . $sth->errstr;
 			my $sth = $dbh->prepare( "SELECT * FROM userdb INTO OUTFILE '/data/apache2/htdocs/backup/userdb.bak'")
-	            	    or die "Couldn't prepare statement: " . $dbh->errstr;
+	            	    or die "Couldn't prepare statement"; ### removed verbose error message
 		      	$sth->execute() or die "Couldn't execute SQL statement: " . $sth->errstr;
 			print h2("Database backup compete - files in www.badstore.net/backup");
 			}
@@ -607,7 +609,7 @@ sub cartadd
 		foreach $temp (@contents) {
 			$cartitems = $cartitems + 1;
 			my $sth = $dbh->prepare( "SELECT price FROM itemdb WHERE itemnum = '$temp'")
-            		or die "Couldn't prepare statement: " . $dbh->errstr;
+            		or die "Couldn't prepare statement"; ### removed verbose error message
           		$sth->execute() or die "Couldn't execute SQL statement: " . $sth->errstr;
 
           		if ($sth->rows == 0) {
@@ -668,13 +670,13 @@ sub order
 
 	### Add ordered items to Order Database ###
 	$dbh->do("INSERT INTO orderdb (sessid, orderdate, ordertime, ordercost, orderitems, itemlist, accountid, ipaddr, cartpaid, ccard, expdate) VALUES ('$id', CURDATE(), CURTIME(), '$price', '$items', '$cartitems', '$email', '$ipaddr', 'Y', '$ccard', '$expdate')")
-	or die "Couldn't prepare SQL statement for order: " . $dbh->errstr;
+	or die "Couldn't prepare SQL statement for order"; ### removed verbose error message
 
 		print p("You have just bought the following:");
 
 		### Prepare and Execute SQL Query ###
 		my $sth = $dbh->prepare( "SELECT itemnum, sdesc, ldesc, price FROM itemdb WHERE itemnum IN ($cartitems)")
-           		or die "Couldn't prepare statement: " . $dbh->errstr;
+           		or die "Couldn't prepare statement"; ### removed verbose error message
      		$sth->execute() or die "Couldn't execute SQL statement: " . $sth->errstr;
      		if ($sth->rows == 0) {
            		die "Item number not found: " . $sth->errstr;
@@ -764,7 +766,7 @@ sub viewprevious
 			or die "Cannot connect: " . $DBI::errstr;
 
 		my $sth = $dbh->prepare( "SELECT orderdate, ordercost, orderitems, itemlist, ccard FROM orderdb WHERE accountid = '$email' ORDER BY orderdate,ordertime")
-                or die "Couldn't prepare statement: " . $dbh->errstr;
+                or die "Couldn't prepare statement"; ### removed verbose error message
         	$sth->execute() or die "Couldn't execute SQL statement: " . $sth->errstr;
 
      		if ($sth->rows == 0) {
@@ -985,7 +987,7 @@ sub cartview
 
 		### Prepare and Execute SQL Query ###
 		my $sth = $dbh->prepare( "SELECT itemnum, sdesc, ldesc, price FROM itemdb WHERE itemnum IN ($cartitems)")
-           		or die "Couldn't prepare statement: " . $dbh->errstr;
+           		or die "Couldn't prepare statement"; ### removed verbose error message
      		$sth->execute() or die "Couldn't execute SQL statement: " . $sth->errstr;
      		if ($sth->rows == 0) {
            		die "Item number not found: " . $sth->errstr;
@@ -1194,7 +1196,7 @@ sub moduser
 		print start_page('BadStore.net - Reset Password for User');
 		### Prepare and Execute SQL Query ###
 		my $sth=$dbh->prepare("UPDATE userdb SET passwd = '$encpasswd' WHERE email='$email'")
-			or die "Could not update password: ".$dbh->errstr;
+			or die "Could not update password"; ### removed verbose error message
 		$sth->execute() or die "Couldn't execute SQL statement: ".$sth->errstr;
 	
 		print h2('The password for user:  ', $email,p, ' ...has been reset to: ',$newpasswd),
@@ -1202,24 +1204,24 @@ sub moduser
 	}elsif ($aquery eq 'Add User'){
 		print start_page('BadStore.net - Add User');
 		$dbh->do("INSERT INTO userdb (email, passwd, pwdhint, fullname, role) VALUES ('$email','$encpasswd','$pwdhint', '$fullname', '$role')")
-			or die "Couldn't prepare SQL statement for Registration: " . $dbh->errstr;
+			or die "Couldn't prepare SQL statement for Registration"; ### removed verbose error message
 		print h2("User:  ",$fullname," has been added.");
 
 	}elsif ($aquery eq 'Delete User'){
 		print start_page('BadStore.net - Delete User');
 		$dbh->do("DELETE FROM userdb WHERE email='$email'")
-			or die "Couldn't prepare SQL statement for Registration: " . $dbh->errstr;
+			or die "Couldn't prepare SQL statement for Registration"; ### removed verbose error message
 		print h2("User:  ",$email," has been deleted.");
 
 	### Change Account Information ###
 	}elsif ($aquery eq 'Change Account'){
 		print start_page('BadStore.net - Update User Information');
 		$dbh->do("UPDATE userdb SET fullname='$fullname' WHERE email='$email'")
-			or die "Couldn't prepare SQL statement: " .$dbh->errstr;
+			or die "Couldn't prepare SQL statement"; ### removed verbose error message
 		$dbh->do("UPDATE userdb SET passwd='$vencpasswd' WHERE email='$email'")
-			or die "Couldn't prepare SQL statement: " .$dbh->errstr;
+			or die "Couldn't prepare SQL statement"; ### removed verbose error message
 		$dbh->do("UPDATE userdb SET email='$newemail' WHERE email='$email'")
-			or die "Couldn't prepare SQL statement: " .$dbh->errstr;
+			or die "Couldn't prepare SQL statement"; ### removed verbose error message
 		print h2(" Account Information for: "),
 		" Full Name: ",$fullname,p," Email: ",$newemail,p," Password: ",$vnewpasswd,p,
 		h3(" Has been updated!");
@@ -1258,7 +1260,7 @@ sub authuser
 
 		### Prepare and Execute SQL Query to Verify Credentials ###
 		my $sth = $dbh->prepare("SELECT * FROM userdb WHERE email='$email' AND passwd='$passwd'")
-      		or die "Couldn't prepare statement: " . $dbh->errstr;
+      		or die "Couldn't prepare statement"; ### removed verbose error message
      		$sth->execute() or die "Couldn't execute SQL statement: " . $sth->errstr;
 
 		if ($sth->rows == 0) {
@@ -1283,7 +1285,7 @@ sub authuser
 		### Register for a new account as a normal user ###
 		### Add ordered items to Order Database ###
 		$dbh->do("INSERT INTO userdb (email, passwd, pwdhint, fullname, role) VALUES ('$email', '$passwd','$pwdhint', '$fullname', '$role')")
-			or die "Couldn't prepare SQL statement for Registration: " . $dbh->errstr;
+			or die "Couldn't prepare SQL statement for Registration"; ### removed verbose error message
 	}
 
 	### Set SSO Cookie ###
