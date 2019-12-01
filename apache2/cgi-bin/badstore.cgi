@@ -1193,7 +1193,7 @@ sub moduser
 	if ($aquery eq 'Reset User Password') {
 		print start_page('BadStore.net - Reset Password for User');
 		### Prepare and Execute SQL Query ###
-		my $sth=$dbh->prepare("UPDATE userdb SET passwd = '$encpasswd' WHERE email='$email'")
+		my $sth=$dbh->prepare("UPDATE userdb SET passwd = '$encpasswd' WHERE email='$email' AND pwdhint='$pwdhint'")
 			or die "Could not update password: ".$dbh->errstr;
 		$sth->execute() or die "Couldn't execute SQL statement: ".$sth->errstr;
 	
