@@ -610,8 +610,7 @@ sub cartadd
 		foreach $temp (@contents) {
 			$cartitems = $cartitems + 1;
 			$sth = $dbh->prepare( "SELECT price FROM itemdb WHERE itemnum = ?");
-			$sth->bind_param(1, $temp);
-			$sth->execute() or die "Couldn't execute SQL statement";
+			$sth->execute($temp) or die "Couldn't execute SQL statement";
 
 			if ($sth->rows == 0) {
 				die "Item number not found";
@@ -650,7 +649,7 @@ sub order
 
 	### Expire the Cookie ###
 	$cartcookie=cookie( -name=>'CartID', -value=>'', -expires=>'-1d', -path=>'/');
-	## FIXME: Setting cookie
+## FIXME: Setting cookie
 	print "Set-Cookie: $cartcookie\n";
 
 	### Get the hidden fields ###
@@ -764,9 +763,9 @@ sub viewprevious
 		my $dbh = DBI->connect("DBI:mysql:database=badstoredb;host=localhost", "root", "secret",{'RaiseError' => 1})
 			or die "Cannot connect"; ### removed verbose error message
 
-		my $sth = $dbh->prepare( "SELECT orderdate, ordercost, orderitems, itemlist, ccard FROM orderdb WHERE accountid = '$email' ORDER BY orderdate,ordertime")
+		my $sth = $dbh->prepare( "SELECT orderdate, ordercost, orderitems, itemlist, ccard FROM orderdb WHERE accountid = ? ORDER BY orderdate,ordertime")
                 or die "Couldn't prepare statement"; ### removed verbose error message
-        	$sth->execute() or die "Couldn't execute SQL statement"; ### removed verbose error message
+        	$sth->execute($email) or die "Couldn't execute SQL statement"; ### removed verbose error message
 
      		if ($sth->rows == 0) {
                print p('You have no previous orders!'), p("Use your browser's Back button and select Login.");
