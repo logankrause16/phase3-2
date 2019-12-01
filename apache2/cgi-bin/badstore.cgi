@@ -1230,9 +1230,9 @@ sub authuser
 	if ($query->url_param('action') eq 'login') {
 
 		### Prepare and Execute SQL Query to Verify Credentials ###
-		my $sth = $dbh->prepare("SELECT * FROM userdb WHERE email='$email' AND passwd='$passwd'")
+		my $sth = $dbh->prepare("SELECT * FROM userdb WHERE email=? AND passwd=?")
       		or die "Couldn't prepare statement"; ### removed verbose error message
-     		$sth->execute() or die "Couldn't execute SQL statement"; ### removed verbose error message
+     		$sth->execute($email, $passwd) or die "Couldn't execute SQL statement"; ### removed verbose error message
 
 		if ($sth->rows == 0) {
 			&printheaders;
@@ -1255,8 +1255,9 @@ sub authuser
 
 		### Register for a new account as a normal user ###
 		### Add ordered items to Order Database ###
-		$dbh->do("INSERT INTO userdb (email, passwd, fullname, role) VALUES ('$email', '$passwd', '$fullname', '$role')")
+		my $sth = $dbh->do("INSERT INTO userdb (email, passwd, fullname, role) VALUES (?, ?, ?, ?)")
 			or die "Couldn't prepare SQL statement for Registration"; ### removed verbose error message
+			$sth->execute($email, $passwd, $fullname, $role)
 	}
 
 	### Set SSO Cookie ###
