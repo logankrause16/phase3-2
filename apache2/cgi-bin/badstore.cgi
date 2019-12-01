@@ -882,9 +882,9 @@ sub supplierportal
 		or die "Cannot connect"; ### removed verbose error message
 
 	### Prepare, Evaluate and Execute SQL Query ###
-	my $sth = $dbh->prepare("SELECT * FROM userdb WHERE email='$email' AND passwd='$passwd' ");
+	my $sth = $dbh->prepare("SELECT * FROM userdb WHERE email=? AND passwd=? ");
 	eval {
-	     	$sth->execute();
+	     	$sth->execute($email, $passwd);
 		1;
 	} or do {
 		print "Location: /cgi-bin/badstore.cgi?action=supplierlogin\n\n";
@@ -985,9 +985,9 @@ sub cartview
          print p("Cart Contains: $items items at $price. The following items are in your cart:");
 
 		### Prepare and Execute SQL Query ###
-		my $sth = $dbh->prepare( "SELECT itemnum, sdesc, ldesc, price FROM itemdb WHERE itemnum IN ($cartitems)")
+		my $sth = $dbh->prepare( "SELECT itemnum, sdesc, ldesc, price FROM itemdb WHERE itemnum IN (?)")
            		or die "Couldn't prepare statement"; ### removed verbose error message
-     		$sth->execute() or die "Couldn't execute SQL statement"; ### removed verbose error message
+     		$sth->execute($cartitems) or die "Couldn't execute SQL statement"; ### removed verbose error message
      		if ($sth->rows == 0) {
            		die "Item number not found"; ### removed verbose error message
      		} else {
