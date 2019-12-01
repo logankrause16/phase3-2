@@ -24,14 +24,11 @@ BadStore.net is currently available in English and Japanese language versions an
 
 
 ## To tag, and run docker container
-<<<<<<< Updated upstream
-=======
 ```
 Build:
     sudo docker build <folderpath>
 Images:
     sudo docker images
->>>>>>> Stashed changes
 Tag:
     sudo docker tag <container id> badstore/http:version#.#
 Run:    
