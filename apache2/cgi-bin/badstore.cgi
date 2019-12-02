@@ -1254,9 +1254,8 @@ sub authuser
 
 		### Register for a new account as a normal user ###
 		### Add ordered items to Order Database ###
-		my $sth = $dbh->do("INSERT INTO userdb (email, passwd, fullname, role) VALUES (?, ?, ?, ?)")
-			or die "Couldn't prepare SQL statement for Registration"; ### removed verbose error message
-			$sth->execute($email, $passwd, $fullname, $role)
+		my $sth = $dbh->prepare("INSERT INTO userdb (email, passwd, fullname, role) VALUES (?, ?, ?, ?)") or die "Couldn't prepare SQL statement for Registration"; ### removed verbose error message
+			$sth->execute($email, $passwd, $fullname, $role);
 	}
 
 	### Set SSO Cookie ###
