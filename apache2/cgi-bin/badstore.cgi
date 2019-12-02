@@ -278,15 +278,31 @@ sub search
 
 sub admin
 {
+	local ($email, $stemp, @s_cookievalue, $passwd, $fullname, $role);
+	### Read SSOid Cookie ###
+	$stemp=cookie('SSOid');
+	$stemp=decode_base64($stemp);
+	@s_cookievalue=split(":", ("$stemp"));
+	$email=shift(@s_cookievalue);
+	$passwd=shift(@s_cookievalue);
+	$fullname=shift(@s_cookievalue);
+	if ($fullname eq '') {
+		$fullname="{Unregistered User}";
+	}
+	$role=shift(@s_cookievalue);
+	if ($role eq 'A') {
 	&printheaders;
 	print start_page("Private Administration Portal for BadStore.net"),
 	h2("Secret Administration Menu"), p;
-
 	print start_form(-action=>'/cgi-bin/badstore.cgi?action=adminportal'),
 	p, h2("Where do you want to be taken today?"),
 	popup_menu(-name=>'admin', -values=>['View Sales Reports','Reset User Password','Add User','Delete User','Show Current Users','Troubleshooting','Backup Databases']),
 	submit('Do It'), end_form,
 	end_page();
+	}
+	else{
+		&home
+	}
 }
 
 ################
@@ -296,10 +312,7 @@ sub admin
 sub adminportal
 {
 	local ($aquery, $email, $newpasswd, @data, $stemp, @s_cookievalue, $passwd, $fullname, $role);
-	&printheaders;
-	print start_page("Private Administration Portal for BadStore.net"),
-	h1("Secret Administration Portal"), p;
-	$aquery=$query->param('admin');
+	
 
 	### Read SSOid Cookie ###
 	$stemp=cookie('SSOid');
@@ -315,6 +328,11 @@ sub adminportal
 
 	### Check SSO Cookie for Admin Role ###
 	if ($role eq 'A') {
+
+	&printheaders;
+	print start_page("Private Administration Portal for BadStore.net"),
+	h1("Secret Administration Portal"), p;
+	$aquery=$query->param('admin');
 
 	### Connect to the SQL Database ###
 	my $dbh = DBI->connect("DBI:mysql:database=badstoredb;host=localhost", "root", "secret",{'RaiseError' => 1})
