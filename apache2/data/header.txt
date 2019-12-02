@@ -9,7 +9,7 @@
             <input 
               type="text" 
               id="searchquery" 
-              name="searchquery" 
+              name="searchquery"
               size="10" 
               value="Search" 
               onfocus="(this.value!='Search'||(this.value=''));" 
@@ -20,7 +20,7 @@
           </p>
            <p>
             <input
-              type="button"
+              type="submit"
               id="logout"
               name="logout"
               size="10"

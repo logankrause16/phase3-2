@@ -93,6 +93,9 @@ if ($action eq 'whatsnew')
 } elsif ($query->url_param('action') eq 'login'){
    &authuser;
 
+}elsif ($action eq 'logout'){
+   &logout;		
+
 } elsif ($query->url_param('action') eq 'register'){
    &authuser;
 
@@ -1062,7 +1065,7 @@ sub loginregister
        </tr>
        <tr>
          <td>Password: </td>
-         <td><input type="password" name="passwd" required size="8" pattern="(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{8,}"/></td>
+         <td><input type="password" name="passwd" required size="8"/></td>
        </tr>
        <tr>
          <td></td>
@@ -1092,6 +1095,22 @@ sub loginregister
    #hidden(-name=>'role', -default=>['U']),
    #submit("Register"), end_form, p,
    #end_page();
+}
+
+##############
+#   Logout   #
+##############
+
+
+sub logout
+{
+
+	$cookievalue=join(":", ('', '', ''));
+	$cookievalue=encode_base64($cookievalue);
+	$cartcookie=cookie( -name=>'SSOid', -value=>$cookievalue, -path=>'/');
+	print "Set-Cookie: $cartcookie\n";
+	&printheaders;
+
 }
 
 ##############
